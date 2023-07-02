@@ -1,0 +1,85 @@
+﻿@model BookCreateDTO
+@{
+    ViewData["Title"] = "Create a new Book";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-2">
+        <p>
+            <h4>Create a new Book</h4>
+        </p>
+
+        <div class="row">
+            <div class="col-md-8 offset-2">
+                <form asp-action="Create">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    
+                    <div class="col-md-4 offset-4 text-center">
+                        <img width="100%" id="ImagePreview" />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Title" class="control-label"></label>
+                                <input asp-for="Title" class="form-control" />
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Image" class="control-label"></label>
+                                <input asp-for="Image" class="form-control" />
+                                <span asp-validation-for="Image" class="text-danger"></span>
+                            </div>
+                           <div class="form-group">
+                                <label asp-for="Rating" class="control-label"></label>
+                                <input asp-for="Rating" type="number" class="form-control" />
+                                <span asp-validation-for="Rating" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="IsTaken" class="control-label">Is Taken?</label>
+                                <input asp-for="IsTaken" type="checkbox" class="form-check-input" />
+                                <span asp-validation-for="IsTaken" class="text-danger"></span>
+                            </div> 
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="AuthorsId" class="control-label">Authors</label>
+                                <select asp-for="AuthorsId" class="form-control" asp-items="ViewBag.Authors" multiple></select>
+                                <span asp-validation-for="AuthorsId" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="PublishDate" class="control-label"></label>
+                                <input asp-for="PublishDate" type="date" class="form-control" />
+                                <span asp-validation-for="PublishDate" class="text-danger"></span>
+                            </div>                            
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label asp-for="Description" class="control-label"></label>
+                                <textarea asp-for="Description" class="form-control"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" value="Create" class="btn btn-outline-success float-right" />
+                        <a class="btn btn-outline-secondary" asp-action="Index">Show all</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            var output = document.getElementById("ImagePreview");
+            output.src = $("#Image").val();
+        });
+        $("#Image").on("change", function () {
+            var output = document.getElementById("ImagePreview");
+            output.src = $(this).val();
+        })
+    </script>
+}
