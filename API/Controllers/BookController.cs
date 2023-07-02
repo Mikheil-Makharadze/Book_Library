@@ -3,6 +3,7 @@ using API.Response;
 using AutoMapper;
 using Core.Entities;
 using Core.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -129,6 +130,7 @@ namespace API.Controllers
         /// <param name="bookCreate"></param>
         /// <returns>newly created book id</returns>
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<APIResponse>> CreateBook(BookCreateDTO bookCreate)
         {
             try
@@ -171,6 +173,7 @@ namespace API.Controllers
         /// <response code="404">If the book is was not found</response>
 
         [HttpDelete("{Id:int}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> DeleteBook(int Id)
         {
@@ -215,6 +218,7 @@ namespace API.Controllers
         /// <returns>newly updated book id</returns>
         /// <response code="404">If the book is was not found</response>
         [HttpPut("{Id:int}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> UpdateProduct(int Id, BookCreateDTO bookUpdate)
         {

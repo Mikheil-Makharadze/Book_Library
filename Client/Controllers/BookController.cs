@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Client.Models.DTO;
+using Clinet.Models.API;
 using Clinet.Models.DTO;
 using Clinet.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -33,6 +35,8 @@ namespace Web.Controllers
             return View(book);
         }
 
+
+        [Authorize]
         public async Task<IActionResult> Create()
         {
             await UpdataAuthorViewBag();
@@ -41,6 +45,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookCreateDTO book)
         {
@@ -56,6 +61,7 @@ namespace Web.Controllers
             return View(book);
         }
 
+        [Authorize]
         public async Task<IActionResult> Edit(int id)
         {
             await UpdataAuthorViewBag();
@@ -66,6 +72,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(BookUpdateDTO book)
         {
@@ -81,6 +88,7 @@ namespace Web.Controllers
             return View(book);
         }
 
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var book = await _bookService.GetByIdAsync(id, GetToken());
@@ -89,6 +97,7 @@ namespace Web.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -100,8 +109,7 @@ namespace Web.Controllers
         #region PrivateMethods
         private string GetToken()
         {
-            return "";
-            //return HttpContext.Session.GetString(SD.SessionToken);
+            return HttpContext.Session.GetString(SD.SessionToken);
         }
 
         private async Task UpdataAuthorViewBag()

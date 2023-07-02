@@ -4,6 +4,7 @@ using AutoMapper;
 using Core.Entities;
 using Core.Interface;
 using Infrastructure.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -128,6 +129,7 @@ namespace API.Controllers
         /// <param name="authorCreate"></param>
         /// <returns>newly created author id</returns>
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<APIResponse>> CreateAuthors(AuthorCreateDTO authorCreate)
         {
             try
@@ -168,6 +170,7 @@ namespace API.Controllers
         /// <returns>newly deleted author id</returns>
         /// <response code="404">If the author is was not found</response>
         [HttpDelete("{Id:int}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> DeleteAuthor(int Id)
         {
@@ -211,6 +214,7 @@ namespace API.Controllers
         /// <returns>newly updated author id</returns>
         /// <response code="404">If the author is was not found</response>
         [HttpPut("{Id:int}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> UpdateProduct(int Id, AuthorCreateDTO authorUpdate)
         {
