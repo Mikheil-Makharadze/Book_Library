@@ -9,6 +9,8 @@ using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -61,6 +63,12 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
+    var basePath = PlatformServices.Default.Application.ApplicationBasePath;
+
+    foreach (var name in Directory.GetFiles(basePath, "*.XML", SearchOption.AllDirectories))
+    {
+        options.IncludeXmlComments(name);
+    }
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description =
