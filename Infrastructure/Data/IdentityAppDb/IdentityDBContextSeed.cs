@@ -9,23 +9,22 @@ namespace Infrastructure.Data.IdentityDB
     {
         public static async Task SeedAsync(IApplicationBuilder applicationBuilder)
         {
-            using (var serviceScope = applicationBuilder.ApplicationServices.CreateScope())
+            using var serviceScope = applicationBuilder.ApplicationServices.CreateScope();
+
+            //User
+            var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
+
+            var admin = await userManager.FindByEmailAsync("admin@bookLibrary.com");
+            if (admin == null)
             {
-                //User
-                var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
-
-                var admin = await userManager.FindByEmailAsync("admin@bookLibrary.com");
-                if (admin == null)
+                var newAdmin = new User()
                 {
-                    var newAdmin = new User()
-                    {
-                        UserName = "admin@bookLibrary.com",
-                        DisplayName = "Admin",
-                        Email = "admin@bookLibrary.com"
-                    };
+                    UserName = "admin@bookLibrary.com",
+                    DisplayName = "Admin",
+                    Email = "admin@bookLibrary.com"
+                };
 
-                    var result1 = await userManager.CreateAsync(newAdmin, "Coding@1234?");
-                }
+                await userManager.CreateAsync(newAdmin, "Coding@1234?");
             }
         }
     }

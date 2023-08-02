@@ -8,12 +8,21 @@ using System.Net;
 
 namespace API.Controllers
 {
+    /// <summary>
+    /// Account staff
+    /// </summary>
     public class AccountController : BaseApiContoller
     {
         private readonly UserManager<User> userManager;
         private readonly SignInManager<User> signInManager;
         private readonly ITokenService tokenService;
 
+        /// <summary>
+        /// injecting services
+        /// </summary>
+        /// <param name="userManager"></param>
+        /// <param name="signInManager"></param>
+        /// <param name="tokenService"></param>
         public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ITokenService tokenService)
         {
             this.userManager = userManager;
@@ -31,46 +40,29 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> Login(LoginDTO loginDto)
         {
-            try
+            var user = await userManager.FindByEmailAsync(loginDto.Email);
+
+            var result = await signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+
+
+            if (!result.Succeeded)
             {
-                var user = await userManager.FindByEmailAsync(loginDto.Email);
-
-                var result = await signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-
-
-                if (!result.Succeeded)
+                return BadRequest(new APIResponse
                 {
-                    return BadRequest(new APIResponse
-                    {
-                        StatusCode = HttpStatusCode.BadRequest,
-                        IsSuccess = false,
-                        ErrorMessages = new List<string> { "Email or Password is incorrect" }
-                    });
-                }
-
-                var newUser = new UserDTO
-                {
-                    Email = user.UserName,
-                    DisplayName = user.DisplayName,
-                    Token = await tokenService.CreateToken(user)
-                };
-
-                return Ok(new APIResponse
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    IsSuccess = true,
-                    Result = newUser
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new APIResponse
-                {
-                    StatusCode = HttpStatusCode.InternalServerError,
+                    StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
-                    ErrorMessages = new List<string> { ex.ToString() }
+                    ErrorMessages = new List<string> { "Email or Password is incorrect" }
                 });
             }
+
+            var newUser = new UserDTO
+            {
+                Email = user.UserName,
+                DisplayName = user.DisplayName ?? "",
+                Token = tokenService.CreateToken(user)
+            };
+
+            return Ok(new APIResponse(newUser));
         }
 
         /// <summary>
@@ -84,57 +76,87 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> Register(RegisterDTO registerDto)
         {
-            try
+            var email = await userManager.FindByEmailAsync(registerDto.Email);
+
+            if (email != null)
             {
-                var email = await userManager.FindByEmailAsync(registerDto.Email);
-
-                if (email != null)
+                return BadRequest(new APIResponse
                 {
-                    return BadRequest(new APIResponse
-                    {
-                        StatusCode = HttpStatusCode.BadRequest,
-                        IsSuccess = false,
-                        ErrorMessages = new List<string> { "Account with this Email already exists" }
-                    });
-                }
-
-                var user = new User
-                {
-                    UserName = registerDto.Email,
-                    Email = registerDto.Email,
-                    DisplayName = registerDto.DisplayName
-                };
-
-                var result = await userManager.CreateAsync(user, registerDto.Password);
-
-                if (!result.Succeeded)
-                {
-                    var errorInfo = result.Errors.Select(n => n.Description).ToList();
-                    errorInfo.Insert(0, "Error while Registering");
-
-                    return BadRequest(new APIResponse
-                    {
-                        StatusCode = HttpStatusCode.BadRequest,
-                        IsSuccess = false,
-                        ErrorMessages = errorInfo
-                    });
-                }
-
-                return Ok(new APIResponse
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    IsSuccess = true
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new APIResponse
-                {
-                    StatusCode = HttpStatusCode.InternalServerError,
+                    StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
-                    ErrorMessages = new List<string> { ex.ToString() }
+                    ErrorMessages = new List<string> { "Account with this Email already exists" }
                 });
             }
+
+            var user = new User
+            {
+                UserName = registerDto.Email,
+                Email = registerDto.Email,
+                DisplayName = registerDto.DisplayName
+            };
+
+            var result = await userManager.CreateAsync(user, registerDto.Password);
+
+            if (!result.Succeeded)
+            {
+                var errorInfo = result.Errors.Select(n => n.Description).ToList();
+                errorInfo.Insert(0, "Error while Registering");
+
+                return BadRequest(new APIResponse
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    IsSuccess = false,
+                    ErrorMessages = errorInfo
+                });
+            }
+
+            return Ok(new APIResponse());
         }
+
+        //[HttpPost("LoginGoogle")]
+        //public async Task<ActionResult<APIResponse>> LoginGoogle(UserDTO result)
+        //{
+        //    var email = result.Email;
+
+        //    if (email != null)
+        //    {
+        //        // Create a new user without password if we do not have a user already
+        //        var user = await userManager.FindByEmailAsync(email);
+
+        //        if (user == null)
+        //        {
+        //            user = new User
+        //            {
+        //                Email = email,
+        //                DisplayName = result.DisplayName
+        //            };
+
+        //            await userManager.CreateAsync(user);
+        //        }
+        //        await signInManager.SignInAsync(user, isPersistent: false);
+        //        //var info = await signInManager.CheckPasswordSignInAsync(user, user.PasswordHash, false);
+
+        //        var newUser = new UserDTO
+        //        {
+        //            Email = user.UserName,
+        //            DisplayName = user.DisplayName,
+        //            Token = await tokenService.CreateToken(user)
+        //        };
+
+        //        return Ok(new APIResponse
+        //        {
+        //            StatusCode = HttpStatusCode.OK,
+        //            IsSuccess = true,
+        //            Result = newUser
+        //        });
+        //    }
+
+        //    return Ok(new APIResponse
+        //    {
+        //        StatusCode = HttpStatusCode.OK,
+        //        IsSuccess = false
+        //    });
+        //}
+
     }
 }

@@ -1,17 +1,36 @@
-﻿using Core.Entities;
-
-namespace API.DTO
+﻿namespace API.DTO
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class AuthorDTO
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public DateTime BirthDate { get; set; }
-        public string Image { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Name { get; set; } = null!;
+        /// <summary>
+        /// /
+        /// </summary>
+        public string Surname { get; set; } = null!;
+        /// <summary>
+        /// 
+        /// </summary>
+        public DateTime? BirthDate { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string? Image { get; set; }
 
 
         //Relationship
-        public virtual ICollection<BookDTO>? books { get; set; } = new List<BookDTO>();
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual ICollection<BookDTO>? Books { get; set; } = new List<BookDTO>();
     }
 }

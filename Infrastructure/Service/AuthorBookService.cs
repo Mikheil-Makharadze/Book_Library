@@ -2,11 +2,6 @@
 using Core.Interface;
 using Infrastructure.Data.AppDB;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Service
 {
@@ -37,7 +32,7 @@ namespace Infrastructure.Service
             await _context.SaveChangesAsync();
         }
 
-        public async Task removeByBookId(int Id)
+        public async Task RemoveByBookId(int Id)
         {
             var authorBook = await _context.AuthorBooks.Where(n => n.BookId == Id).ToListAsync();
             _context.AuthorBooks.RemoveRange(authorBook);

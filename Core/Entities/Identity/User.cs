@@ -5,7 +5,7 @@ namespace Core.Entities.Identity
 {
     public class User : IdentityUser
     {
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
 
     }
 }

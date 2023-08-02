@@ -1,10 +1,22 @@
 ﻿namespace API.DTO.IdentityDTO
 {
+    /// <summary>
+    /// register
+    /// </summary>
     public class RegisterDTO
     {
-        public string DisplayName { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string DisplayName { get; set; } = null!;
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Email { get; set; } = null!;
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Password { get; set; } = null!;
 
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Core.Entities;
 using Core.Interface;
+using Infrastructure.CustomeException;
 using Infrastructure.Data.AppDB;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,7 +21,7 @@ namespace Infrastructure.Service
 
             if (search != null)
             {
-                query = query.Where(n => n.Name.Contains(search.Trim()));
+                query = query.Where(n => n.Name != null && n.Name.Contains(search.Trim()));
             }
 
             return await query.Include(n => n.AuthorBooks).ThenInclude(n => n.Book).ToListAsync();
@@ -29,7 +30,8 @@ namespace Infrastructure.Service
         public async Task<Author> GetByIdDetailsAsync(int id)
         {
             return await _context.Authors.AsNoTracking().AsQueryable()
-                .Include(n => n.AuthorBooks).ThenInclude(n => n.Book).FirstOrDefaultAsync(n => n.Id == id);
+                .Include(n => n.AuthorBooks).ThenInclude(n => n.Book)
+                .FirstOrDefaultAsync(n => n.Id == id) ?? throw new NotFoundException($"Author with Id: {id} was not found");
         }
     }
 }

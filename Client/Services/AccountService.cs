@@ -1,7 +1,9 @@
 ﻿using Client.Models.DTO.IdentityDTO;
 using Clinet.Models.API;
 using Clinet.Services;
+using Microsoft.AspNetCore.Authentication;
 using Newtonsoft.Json;
+using System.Security.Claims;
 using Web.Services.Interfaces;
 
 namespace Web.Services
@@ -24,6 +26,18 @@ namespace Web.Services
 
             return JsonConvert.DeserializeObject<UserDTO>(Convert.ToString(apiResponse.Result));
 
+        }
+
+        public async  Task<UserDTO> LoginGoogleAsync(UserDTO result)
+        {
+            var apiResponse = await SendAsync(new APIRequest()
+            {
+                ApiType = SD.ApiType.POST,
+                Data = result,
+                Url = APIUrl + "/api/Account/LoginGoogle"
+            });
+
+            return JsonConvert.DeserializeObject<UserDTO>(Convert.ToString(apiResponse.Result));
         }
 
         public async Task RegisterAsync(RegisterDTO registerDTO)

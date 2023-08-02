@@ -1,6 +1,5 @@
 ﻿using Core.Entities.Identity;
 using Core.Interfaces;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -19,7 +18,7 @@ namespace Infrastructure.Services
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Token:Key"]));
         }
 
-        public async Task<string> CreateToken(User user)
+        public string CreateToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -28,7 +27,7 @@ namespace Infrastructure.Services
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Email, user.Email.ToString()),
-                    new Claim(ClaimTypes.GivenName, user.DisplayName)
+                    new Claim(ClaimTypes.GivenName, user.DisplayName ?? "")
                 }),
 
                 Expires = DateTime.UtcNow.AddDays(7),

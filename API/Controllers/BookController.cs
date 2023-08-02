@@ -5,16 +5,24 @@ using Core.Entities;
 using Core.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace API.Controllers
 {
-
+    /// <summary>
+    /// Crud for Books
+    /// </summary>
     public class BookController : BaseApiContoller
     {
         private readonly IBookService _bookService;
         private readonly IAuthorBookService _authorBookService;
         private readonly IMapper _mapper;
+
+        /// <summary>
+        /// injecting services for Book
+        /// </summary>
+        /// <param name="bookService"></param>
+        /// <param name="authorBookService"></param>
+        /// <param name="mapper"></param>
         public BookController(IBookService bookService, IAuthorBookService authorBookService, IMapper mapper)
         {
             _bookService = bookService;
@@ -32,36 +40,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> GetBook(int Id)
         {
-            try
-            {
-                var book = await _bookService.GetByIdDetailsAsync(Id);
-
-                if (book == null)
-                {
-                    return NotFound(new APIResponse
-                    {
-                        StatusCode = HttpStatusCode.NotFound,
-                        IsSuccess = false,
-                        ErrorMessages = new List<string> { "Book was not found" }
-                    });
-                }
-
-                return Ok(new APIResponse
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    IsSuccess = true,
-                    Result = _mapper.Map<BookDTO>(book)
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new APIResponse
-                {
-                    StatusCode = HttpStatusCode.InternalServerError,
-                    IsSuccess = false,
-                    ErrorMessages = new List<string> { ex.ToString() }
-                });
-            }
+            return Ok(new APIResponse(_mapper.Map<BookDTO>(await _bookService.GetByIdDetailsAsync(Id))));
         }
 
         /// <summary>
@@ -71,26 +50,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult<APIResponse>> GetAllBooks()
         {
-            try
-            {
-                var books = await _bookService.GetAllAsync();
-
-                return Ok(new APIResponse
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    IsSuccess = true,
-                    Result = _mapper.Map<List<BookDTO>>(books)
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new APIResponse
-                {
-                    StatusCode = HttpStatusCode.InternalServerError,
-                    IsSuccess = false,
-                    ErrorMessages = new List<string> { ex.ToString() }
-                });
-            }
+            return Ok(new APIResponse(_mapper.Map<List<BookDTO>>(await _bookService.GetAllAsync())));
         }
 
         /// <summary>
@@ -100,28 +60,7 @@ namespace API.Controllers
         [HttpGet("Details")]
         public async Task<ActionResult<APIResponse>> GetAllBooksDetails(SearchString searchString)
         {
-            try
-            {
-                var books = await _bookService.GetAllDetailsAsync(searchString.Search);
-
-
-
-                return Ok(new APIResponse
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    IsSuccess = true,
-                    Result = _mapper.Map<List<BookDTO>>(books)
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new APIResponse
-                {
-                    StatusCode = HttpStatusCode.InternalServerError,
-                    IsSuccess = false,
-                    ErrorMessages = new List<string> { ex.ToString() }
-                });
-            }
+            return Ok(new APIResponse(_mapper.Map<List<BookDTO>>(await _bookService.GetAllDetailsAsync(searchString.Search))));
         }
 
         /// <summary>
@@ -133,36 +72,18 @@ namespace API.Controllers
         [Authorize]
         public async Task<ActionResult<APIResponse>> CreateBook(BookCreateDTO bookCreate)
         {
-            try
-            {
-                Book book = _mapper.Map<Book>(bookCreate);
-                await _bookService.AddAsync(book);
+            var book = _mapper.Map<Book>(bookCreate);
+            await _bookService.AddAsync(book);
 
-                if(bookCreate.AuthorsId.Count() > 0)
+            if(bookCreate.AuthorsId != null)
+            {
+                foreach (var authorId in bookCreate.AuthorsId)
                 {
-                    foreach (var authorId in bookCreate.AuthorsId)
-                    {
-                        await _authorBookService.CreateAuthorBook(authorId, book.Id);
-                    }
+                    await _authorBookService.CreateAuthorBook(authorId, book.Id);
                 }
-                
+            }                
 
-                return Ok(new APIResponse
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    IsSuccess = true,
-                    Result = book.Id
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new APIResponse
-                {
-                    StatusCode = HttpStatusCode.InternalServerError,
-                    IsSuccess = false,
-                    ErrorMessages = new List<string> { ex.ToString() }
-                });
-            }
+            return Ok(new APIResponse( book.Id));
         }
 
         /// <summary>
@@ -177,37 +98,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> DeleteBook(int Id)
         {
-            try
-            {
-                var book = await _bookService.GetByIdAsync(Id);
-                await _bookService.DeleteAsync(book);
-
-                if (book == null)
-                {
-                    return NotFound(new APIResponse
-                    {
-                        StatusCode = HttpStatusCode.NotFound,
-                        IsSuccess = false,
-                        ErrorMessages = new List<string> { "Book was not found" }
-                    });
-                }
-
-                return Ok(new APIResponse
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    IsSuccess = true,
-                    Result = book.Id
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new APIResponse
-                {
-                    StatusCode = HttpStatusCode.InternalServerError,
-                    IsSuccess = false,
-                    ErrorMessages = new List<string> { ex.ToString() }
-                });
-            }
+            return Ok(new APIResponse(await _bookService.GetByIdAsync(Id)));
         }
 
         /// <summary>
@@ -222,47 +113,21 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> UpdateProduct(int Id, BookCreateDTO bookUpdate)
         {
-            try
+            var book = await _bookService.GetByIdAsync(Id);
+
+            _mapper.Map(bookUpdate, book);                
+            await _bookService.UpdateAsync(book);
+
+            await _authorBookService.RemoveByBookId(book.Id);
+            if (bookUpdate.AuthorsId != null)
             {
-                var book = await _bookService.GetByIdAsync(Id);
-                if (book == null)
+                foreach (var authorId in bookUpdate.AuthorsId)
                 {
-                    return NotFound(new APIResponse
-                    {
-                        StatusCode = HttpStatusCode.NotFound,
-                        IsSuccess = false,
-                        ErrorMessages = new List<string> { "Book was not found" }
-                    });
+                    await _authorBookService.CreateAuthorBook(authorId, book.Id);
                 }
-
-                _mapper.Map(bookUpdate, book);                
-                await _bookService.UpdateAsync(book);
-
-                await _authorBookService.removeByBookId(book.Id);
-                if (bookUpdate.AuthorsId.Count() > 0)
-                {
-                    foreach (var authorId in bookUpdate.AuthorsId)
-                    {
-                        await _authorBookService.CreateAuthorBook(authorId, book.Id);
-                    }
-                }
-
-                return Ok(new APIResponse
-                {
-                    StatusCode = HttpStatusCode.NoContent,
-                    IsSuccess = true,
-                    Result = book.Id
-                });
             }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new APIResponse
-                {
-                    StatusCode = HttpStatusCode.InternalServerError,
-                    IsSuccess = false,
-                    ErrorMessages = new List<string> { ex.ToString() }
-                });
-            }
+
+            return Ok(new APIResponse(book.Id));
         }
     }
 }

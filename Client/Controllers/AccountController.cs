@@ -6,6 +6,8 @@ using System.Security.Claims;
 using Client.Models.DTO.IdentityDTO;
 using System.IdentityModel.Tokens.Jwt;
 using Web.Services.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Google;
 
 namespace Web.Controllers
 {
@@ -80,6 +82,53 @@ namespace Web.Controllers
             return View();
         }
 
+        public IActionResult GoogleLogin()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = "https://localhost:7147/api/Account/LoginGoogle",
+                Items =
+                {
+                    { "scheme", CookieAuthenticationDefaults.AuthenticationScheme }
+                }
+            };
+
+            return Challenge(properties, CookieAuthenticationDefaults.AuthenticationScheme); 
+
+            //await HttpContext.ChallengeAsync(
+            //   GoogleDefaults.AuthenticationScheme,
+            //   new AuthenticationProperties { RedirectUri = "https://localhost:7147/api/Account/LoginGoogle" });
+        }
+
+        //public async Task<IActionResult> GoogleLoginCallback()
+        //{
+        //    var authenticateResult = await HttpContext.AuthenticateAsync();
+
+        //    if (!authenticateResult.Succeeded)
+        //        return View("Login");
+
+        //    var Email = authenticateResult.Principal.FindFirstValue(ClaimTypes.Email);
+        //    var DispayName = authenticateResult.Principal.FindFirstValue(ClaimTypes.GivenName);
+
+        //    UserDTO user = new UserDTO()
+        //    {
+        //        Email = Email,
+        //        DisplayName = DispayName,
+        //        Token = ""
+        //    };
+
+        //    UserDTO model = await authService.LoginGoogleAsync(user);
+
+        //    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, authenticateResult.Principal);
+        //    HttpContext.Session.SetString(SD.SessionToken, model.Token);
+
+        //    return RedirectToAction("Index", "Book");
+        //    // Process the authentication result and sign in the user if successful
+
+        //    // Redirect to a different page or perform additional actions
+
+        //    return RedirectToAction("Index", "Home");
+        //}
         private ClaimsPrincipal ClaimsIdentity(UserDTO model)
         {
             var handler = new JwtSecurityTokenHandler();

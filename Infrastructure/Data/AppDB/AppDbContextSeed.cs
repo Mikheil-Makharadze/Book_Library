@@ -8,15 +8,14 @@ namespace Infrastructure.Data.AppDB
     {
         public static async Task SeedAsync(IApplicationBuilder applicationBuilder)
         {
-            using (var serviceScope = applicationBuilder.ApplicationServices.CreateScope())
+            using var serviceScope = applicationBuilder.ApplicationServices.CreateScope();
+
+            var context = serviceScope.ServiceProvider.GetService<AppDbContext>();
+            context!.Database.EnsureCreated();
+
+            if (!(context.Books.Any() || context.Authors.Any()))
             {
-                var context = serviceScope.ServiceProvider.GetService<AppDbContext>();
-
-                context.Database.EnsureCreated();
-
-                if (!(context.Books.Any() || context.Authors.Any()))
-                {
-                    await context.Authors.AddRangeAsync(new List<Author>()
+                await context.Authors.AddRangeAsync(new List<Author>()
                     {
                         new Author
                         {
@@ -69,9 +68,9 @@ namespace Infrastructure.Data.AppDB
                         }
                     });
 
-                    context.SaveChanges();
+                context.SaveChanges();
 
-                    await context.Books.AddRangeAsync(new List<Book>()
+                await context.Books.AddRangeAsync(new List<Book>()
                     {
                         new Book
                         {
@@ -165,10 +164,10 @@ namespace Infrastructure.Data.AppDB
                         }
                     });
 
-                    context.SaveChanges();
+                context.SaveChanges();
 
 
-                    await context.AuthorBooks.AddRangeAsync(new List<AuthorBook>()
+                await context.AuthorBooks.AddRangeAsync(new List<AuthorBook>()
                     {
                         new AuthorBook
                         {
@@ -237,10 +236,8 @@ namespace Infrastructure.Data.AppDB
                         }
                     });
 
-                    await context.SaveChangesAsync();
+                await context.SaveChangesAsync();
 
-
-                }
 
             }
         }

@@ -36,6 +36,11 @@ builder.Services.AddAuthentication
         options.LoginPath = "/Auth/Login";
         options.AccessDeniedPath = "/Auth/AccessDenied";
         options.SlidingExpiration = true;
+    })
+    .AddGoogle(googleOptions =>
+    {
+        googleOptions.ClientId = "1016259375603-vogqp8he55tq73uknp3nsekgp1u552b2.apps.googleusercontent.com";
+        googleOptions.ClientSecret = "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";
     });
 
 builder.Services.AddAuthorization();

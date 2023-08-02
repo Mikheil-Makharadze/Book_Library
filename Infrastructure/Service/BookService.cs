@@ -1,5 +1,6 @@
 ﻿using Core.Entities;
 using Core.Interface;
+using Infrastructure.CustomeException;
 using Infrastructure.Data.AppDB;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,10 @@ namespace Infrastructure.Service
         {
             _context = context;
         }
+        //public override Task<IEnumerable<Book>> GetAllAsync()
+        //{
+        //    return base.GetAllAsync();
+        //}
 
         public async Task<IEnumerable<Book>> GetAllDetailsAsync(string? search)
         {
@@ -20,7 +25,7 @@ namespace Infrastructure.Service
 
             if(search != null)
             {
-                query = query.Where(n => n.Title.Contains(search.Trim()));
+                query = query.Where(n => n.Title != null && n.Title.Contains(search.Trim()));
             }
 
             return await query.Include(n => n.AuthorBooks).ThenInclude(n => n.Author).ToListAsync();
@@ -29,7 +34,8 @@ namespace Infrastructure.Service
         public async Task<Book> GetByIdDetailsAsync(int id)
         {
             return await _context.Books.AsNoTracking().AsQueryable()
-                .Include(n => n.AuthorBooks).ThenInclude(n => n.Author).FirstOrDefaultAsync(n => n.Id == id);
+                .Include(n => n.AuthorBooks).ThenInclude(n => n.Author)
+                .FirstOrDefaultAsync(n => n.Id == id) ?? throw new NotFoundException($"Book with Id: {id} was not found");
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Authentication;
 
 namespace Clinet.Services
 {
@@ -54,16 +55,16 @@ namespace Clinet.Services
 
                 var apiContent = await apiResponse.Content.ReadAsStringAsync();
 
-                return JsonConvert.DeserializeObject<APIResponse>(apiContent); ;
+                return JsonConvert.DeserializeObject<APIResponse>(apiContent);
 
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
 
                 return new APIResponse
                 {
                     StatusCode = HttpStatusCode.InternalServerError,
-                    ErrorMessages = new List<string> { Convert.ToString(e.Message) },
+                    ErrorMessages = new List<string> { Convert.ToString(ex.Message) },
                     IsSuccess = false
                 };
             }
