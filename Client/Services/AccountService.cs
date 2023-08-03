@@ -1,21 +1,19 @@
-﻿using Client.Models.DTO.IdentityDTO;
+﻿using Client.Exceptions;
+using Client.Models.DTO.IdentityDTO;
 using Clinet.Models.API;
 using Clinet.Services;
-using Microsoft.AspNetCore.Authentication;
-using Newtonsoft.Json;
-using System.Security.Claims;
 using Web.Services.Interfaces;
 
 namespace Web.Services
 {
     public class AccountService : BaseService, IAccountService
     {
-        private string APIUrl;
+        private readonly string APIUrl;
         public AccountService(IHttpClientFactory _clientFactory, IConfiguration configuration) : base(_clientFactory)
         {
             APIUrl = configuration.GetValue<string>("ServiceUrls:BookLibrary");
         }
-        public async Task<UserDTO> LoginAsync(LoginDTO loginDto)
+        public async Task<string> LoginAsync(LoginDTO loginDto)
         {
             var apiResponse = await SendAsync(new APIRequest()
             {
@@ -24,11 +22,12 @@ namespace Web.Services
                 Url = APIUrl + "/api/Account/Login"
             });
 
-            return JsonConvert.DeserializeObject<UserDTO>(Convert.ToString(apiResponse.Result));
+            CheckAPIResponse(apiResponse);
 
+            return Convert.ToString(apiResponse.Result)!;
         }
 
-        public async  Task<UserDTO> LoginGoogleAsync(UserDTO result)
+        public async  Task<string> LoginGoogleAsync(UserDTO result)
         {
             var apiResponse = await SendAsync(new APIRequest()
             {
@@ -37,7 +36,7 @@ namespace Web.Services
                 Url = APIUrl + "/api/Account/LoginGoogle"
             });
 
-            return JsonConvert.DeserializeObject<UserDTO>(Convert.ToString(apiResponse.Result));
+            return Convert.ToString(apiResponse.Result)!;
         }
 
         public async Task RegisterAsync(RegisterDTO registerDTO)
@@ -48,6 +47,15 @@ namespace Web.Services
                 Data = registerDTO,
                 Url = APIUrl + "/api/Account/Register"
             });
+
+            CheckAPIResponse(apiResponse);
+        }
+        private static void CheckAPIResponse(APIResponse apiResponse)
+        {
+            if (apiResponse.IsSuccess == false)
+            {
+                throw new APIException(apiResponse.ErrorMessages.FirstOrDefault());
+            }
         }
     }
 }

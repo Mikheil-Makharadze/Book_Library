@@ -14,10 +14,6 @@ namespace Infrastructure.Service
         {
             _context = context;
         }
-        //public override Task<IEnumerable<Book>> GetAllAsync()
-        //{
-        //    return base.GetAllAsync();
-        //}
 
         public async Task<IEnumerable<Book>> GetAllDetailsAsync(string? search)
         {

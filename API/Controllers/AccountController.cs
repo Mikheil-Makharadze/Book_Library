@@ -2,6 +2,7 @@
 using API.Response;
 using Core.Entities.Identity;
 using Core.Interfaces;
+using Infrastructure.CustomException;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -29,6 +30,7 @@ namespace API.Controllers
             this.signInManager = signInManager;
             this.tokenService = tokenService;
         }
+
         /// <summary>
         /// Login
         /// </summary>
@@ -42,27 +44,19 @@ namespace API.Controllers
         {
             var user = await userManager.FindByEmailAsync(loginDto.Email);
 
-            var result = await signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-
-
-            if (!result.Succeeded)
+            if (user != null)
             {
-                return BadRequest(new APIResponse
+                var result = await signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+
+                if (!result.Succeeded)
                 {
-                    StatusCode = HttpStatusCode.BadRequest,
-                    IsSuccess = false,
-                    ErrorMessages = new List<string> { "Email or Password is incorrect" }
-                });
+                    throw new BadRequestException("Email or Password is incorrect");
+                }
+
+                return Ok(new APIResponse(tokenService.CreateToken(user)));
             }
 
-            var newUser = new UserDTO
-            {
-                Email = user.UserName,
-                DisplayName = user.DisplayName ?? "",
-                Token = tokenService.CreateToken(user)
-            };
-
-            return Ok(new APIResponse(newUser));
+            throw new BadRequestException("Email or Password is incorrect");
         }
 
         /// <summary>
@@ -80,12 +74,7 @@ namespace API.Controllers
 
             if (email != null)
             {
-                return BadRequest(new APIResponse
-                {
-                    StatusCode = HttpStatusCode.BadRequest,
-                    IsSuccess = false,
-                    ErrorMessages = new List<string> { "Account with this Email already exists" }
-                });
+                throw new BadRequestException("Account with this Email already exists");
             }
 
             var user = new User
@@ -99,15 +88,7 @@ namespace API.Controllers
 
             if (!result.Succeeded)
             {
-                var errorInfo = result.Errors.Select(n => n.Description).ToList();
-                errorInfo.Insert(0, "Error while Registering");
-
-                return BadRequest(new APIResponse
-                {
-                    StatusCode = HttpStatusCode.BadRequest,
-                    IsSuccess = false,
-                    ErrorMessages = errorInfo
-                });
+                throw new BadRequestException("Error while Registering");
             }
 
             return Ok(new APIResponse());

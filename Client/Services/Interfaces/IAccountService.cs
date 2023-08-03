@@ -6,8 +6,8 @@ namespace Web.Services.Interfaces
 {
     public interface IAccountService
     {
-        Task<UserDTO> LoginAsync(LoginDTO loginDto);
-        Task<UserDTO> LoginGoogleAsync(UserDTO result);
+        Task<string> LoginAsync(LoginDTO loginDto);
+        Task<string> LoginGoogleAsync(UserDTO result);
         Task RegisterAsync(RegisterDTO registerDTO);
     }
 }

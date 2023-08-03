@@ -3,24 +3,23 @@ using System.Net.Http.Headers;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Authentication;
 
 namespace Clinet.Services
 {
     public class BaseService
     {
-        public IHttpClientFactory httpClient { get; set; }
+        public IHttpClientFactory HttpClient { get; set; }
         public BaseService(IHttpClientFactory httpClient)
         {
-            this.httpClient = httpClient;
+            this.HttpClient = httpClient;
         }
         public async Task<APIResponse> SendAsync(APIRequest apiRequest)
         {
             try
             {
-                var client = httpClient.CreateClient("BookLibrary");
+                var client = HttpClient.CreateClient("BookLibrary");
 
-                HttpRequestMessage message = new HttpRequestMessage();
+                HttpRequestMessage message = new();
                 message.Headers.Add("Accept", "application/json");
                 message.RequestUri = new Uri(apiRequest.Url);
 
@@ -30,22 +29,14 @@ namespace Clinet.Services
                         Encoding.UTF8, "application/json");
                 }
 
-                switch (apiRequest.ApiType)
+                message.Method = apiRequest.ApiType switch
                 {
-                    case SD.ApiType.POST:
-                        message.Method = HttpMethod.Post;
-                        break;
-                    case SD.ApiType.PUT:
-                        message.Method = HttpMethod.Put;
-                        break;
-                    case SD.ApiType.DELETE:
-                        message.Method = HttpMethod.Delete;
-                        break;
-                    default:
-                        message.Method = HttpMethod.Get;
-                        break;
-                }
-
+                    SD.ApiType.GET => HttpMethod.Get,
+                    SD.ApiType.POST => HttpMethod.Post,
+                    SD.ApiType.PUT => HttpMethod.Put,
+                    SD.ApiType.DELETE => HttpMethod.Delete,
+                    _ => throw new Exception("Unknown Http Method"),
+                };
                 if (!string.IsNullOrEmpty(apiRequest.Token))
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiRequest.Token);
@@ -55,7 +46,7 @@ namespace Clinet.Services
 
                 var apiContent = await apiResponse.Content.ReadAsStringAsync();
 
-                return JsonConvert.DeserializeObject<APIResponse>(apiContent);
+                return JsonConvert.DeserializeObject<APIResponse>(apiContent)!;
 
             }
             catch (Exception ex)

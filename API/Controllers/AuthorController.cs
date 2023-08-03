@@ -44,24 +44,24 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Get All Authors
-        /// </summary>
-        /// <returns>authors</returns>
-        [HttpGet]
-        public async Task<ActionResult<APIResponse>> GetAllAuthors()
-        {
-            return Ok(new APIResponse(_mapper.Map<List<AuthorDTO>>(await _authorService.GetAllAsync())));
-        }
-
-        /// <summary>
         /// Get All Authors With Books Info
         /// </summary>
         /// <returns>authors with books details</returns>
-        [HttpGet("Details")]
-        public async Task<ActionResult<APIResponse>> GetAllAuthorsDetails(SearchString searchString)
+        [HttpGet()]
+        public async Task<ActionResult<APIResponse>> GetAllAuthors(SearchString searchString)
         {
             return Ok(new APIResponse(_mapper.Map<List<AuthorDTO>>(await _authorService.GetAllDetailsAsync(searchString.Search))));
         }
+
+        /// <summary>
+        /// Get All Authors
+        /// </summary>
+        /// <returns>authors</returns>
+        [HttpGet("SelectorItems")]
+        public async Task<ActionResult<APIResponse>> GetAllAuthorsSelectorItems()
+        {
+            return Ok(new APIResponse(_mapper.Map<List<SelectorItems>>(await _authorService.GetAllAsync())));
+        }        
 
         /// <summary>
         /// Create New Author
@@ -110,7 +110,7 @@ namespace API.Controllers
         [HttpPut("{Id:int}")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<APIResponse>> UpdateProduct(int Id, AuthorCreateDTO authorUpdate)
+        public async Task<ActionResult<APIResponse>> UpdateAuthor(int Id, AuthorCreateDTO authorUpdate)
         {
             var author = await _authorService.GetByIdAsync(Id);
 

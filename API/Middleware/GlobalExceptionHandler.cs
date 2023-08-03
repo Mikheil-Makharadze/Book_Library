@@ -1,5 +1,6 @@
 ﻿using API.Response;
 using Infrastructure.CustomeException;
+using Infrastructure.CustomException;
 using Newtonsoft.Json;
 using System.Net;
 
@@ -49,6 +50,12 @@ namespace API.Middleware
             {
                 apiResponse.StatusCode = notFound.StatusCode;
             }
+            else if (ex is BadRequestException badException)
+            {
+                apiResponse.StatusCode = badException.StatusCode;
+
+            }
+
             // Set the response status code
             context.Response.StatusCode = (int)apiResponse.StatusCode;
             context.Response.ContentType = "application/json";

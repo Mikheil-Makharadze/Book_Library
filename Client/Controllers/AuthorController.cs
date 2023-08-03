@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Client.Exceptions;
 using Client.Models.DTO;
 using Clinet.Models.API;
 using Clinet.Models.DTO;
@@ -23,7 +24,7 @@ namespace Web.Controllers
         }
         public async Task<IActionResult> Index(string? searchString)
         {
-            var authors = await _authorService.GetAllDetailsAsync(searchString, GetToken());
+            var authors = await _authorService.GetAllAsync(searchString, GetToken());
 
             return View(authors);
         }
@@ -50,9 +51,16 @@ namespace Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _authorService.AddAsync(author, GetToken());
+                try
+                {
+                    await _authorService.AddAsync(author, GetToken());
 
-                return RedirectToAction("Index");
+                    return RedirectToAction("Index");
+                }
+                catch (APIException ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
             }
 
             await UpdataBookViewBag();
@@ -78,9 +86,16 @@ namespace Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _authorService.UpdateAsync(author.Id, author, GetToken());
+                try
+                {
+                    await _authorService.UpdateAsync(author.Id, author, GetToken());
 
-                return RedirectToAction("Index");
+                    return RedirectToAction("Index");
+                }
+                catch (APIException ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }                
             }
 
             await UpdataBookViewBag();
@@ -110,14 +125,14 @@ namespace Web.Controllers
         #region PrivateMethods
         private string GetToken()
         {
-            return HttpContext.Session.GetString(SD.SessionToken);
+            return HttpContext.Session.GetString(SD.SessionToken)!;
         }
 
         private async Task UpdataBookViewBag()
         {
-            var Books = await _bookService.GetAllAsync(GetToken());
+            var Books = await _bookService.GetAllSelectorItemsAsync(GetToken());
 
-            ViewBag.Books = new SelectList(Books, "Id", "Title");
+            ViewBag.Books = new SelectList(Books, "Id", "Name");
         }
         #endregion
     }

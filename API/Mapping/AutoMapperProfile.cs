@@ -21,6 +21,10 @@ namespace API.Mapping
 
             CreateMap<Author, AuthorCreateDTO>().ReverseMap();
 
+            CreateMap<Author, SelectorItems>()
+                .ForPath(si => si.Id, m => m.MapFrom(a => a.Id))
+                .ForPath(si => si.Name, m => m.MapFrom(a => a.Name + " " + a.Surname));
+
 
             //Book
             CreateMap<Book, BookDTO>()
@@ -28,6 +32,10 @@ namespace API.Mapping
                 .ReverseMap();
 
             CreateMap<BookCreateDTO, Book>().ReverseMap();
+
+            CreateMap<Book, SelectorItems>()
+                .ForPath(si => si.Id, m => m.MapFrom(b => b.Id))
+                .ForPath(si => si.Name, m => m.MapFrom(b => b.Title));
         }
     }
 }

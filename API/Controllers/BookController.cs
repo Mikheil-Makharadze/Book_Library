@@ -43,24 +43,26 @@ namespace API.Controllers
             return Ok(new APIResponse(_mapper.Map<BookDTO>(await _bookService.GetByIdDetailsAsync(Id))));
         }
 
-        /// <summary>
-        /// Get All Books
-        /// </summary>
-        /// <returns>Books</returns>
-        [HttpGet]
-        public async Task<ActionResult<APIResponse>> GetAllBooks()
-        {
-            return Ok(new APIResponse(_mapper.Map<List<BookDTO>>(await _bookService.GetAllAsync())));
-        }
+        
 
         /// <summary>
         /// Get All Books With Author Info
         /// </summary>
         /// <returns>Books with author details</returns>
-        [HttpGet("Details")]
-        public async Task<ActionResult<APIResponse>> GetAllBooksDetails(SearchString searchString)
+        [HttpGet]
+        public async Task<ActionResult<APIResponse>> GetAllBooks(SearchString searchString)
         {
             return Ok(new APIResponse(_mapper.Map<List<BookDTO>>(await _bookService.GetAllDetailsAsync(searchString.Search))));
+        }
+
+        /// <summary>
+        /// Get All Books
+        /// </summary>
+        /// <returns>Books</returns>
+        [HttpGet("SelecorItems")]
+        public async Task<ActionResult<APIResponse>> GetAllBooksSelectorItems()
+        {
+            return Ok(new APIResponse(_mapper.Map<List<SelectorItems>>(await _bookService.GetAllAsync())));
         }
 
         /// <summary>

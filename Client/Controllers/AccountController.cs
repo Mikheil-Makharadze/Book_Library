@@ -6,8 +6,7 @@ using System.Security.Claims;
 using Client.Models.DTO.IdentityDTO;
 using System.IdentityModel.Tokens.Jwt;
 using Web.Services.Interfaces;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authentication.Google;
+using Client.Exceptions;
 
 namespace Web.Controllers
 {
@@ -21,10 +20,9 @@ namespace Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Login()
+        public IActionResult Login()
         {
-            LoginDTO obj = new();
-            return View(obj);
+            return View();
         }
 
         [HttpPost]
@@ -33,15 +31,20 @@ namespace Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                UserDTO model = await authService.LoginAsync(loginDTO);
+                try
+                {
+                    string model = await authService.LoginAsync(loginDTO);
+                    var principal = ClaimsIdentity(model);
 
-                var principal = ClaimsIdentity(model);
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                    HttpContext.Session.SetString(SD.SessionToken, model);
 
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-                HttpContext.Session.SetString(SD.SessionToken, model.Token);
-
-                return RedirectToAction("Index", "Book");
-
+                    return RedirectToAction("Index", "Book");
+                }
+                catch(APIException ex)
+                {
+                    ModelState.AddModelError("", ex.Message);                    
+                }
             }
 
             return View(loginDTO);
@@ -59,13 +62,19 @@ namespace Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                await authService.RegisterAsync(obj);
+                try
+                {
+                    await authService.RegisterAsync(obj);
 
-                return RedirectToAction("Login");
+                    return RedirectToAction("Login");
+                }
+                catch (APIException ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
             }
 
             return View(obj);
-
         }
 
         public async Task<IActionResult> Logout()
@@ -82,62 +91,32 @@ namespace Web.Controllers
             return View();
         }
 
-        public IActionResult GoogleLogin()
-        {
-            var properties = new AuthenticationProperties
-            {
-                RedirectUri = "https://localhost:7147/api/Account/LoginGoogle",
-                Items =
-                {
-                    { "scheme", CookieAuthenticationDefaults.AuthenticationScheme }
-                }
-            };
-
-            return Challenge(properties, CookieAuthenticationDefaults.AuthenticationScheme); 
-
-            //await HttpContext.ChallengeAsync(
-            //   GoogleDefaults.AuthenticationScheme,
-            //   new AuthenticationProperties { RedirectUri = "https://localhost:7147/api/Account/LoginGoogle" });
-        }
-
-        //public async Task<IActionResult> GoogleLoginCallback()
+        //public IActionResult GoogleLogin()
         //{
-        //    var authenticateResult = await HttpContext.AuthenticateAsync();
-
-        //    if (!authenticateResult.Succeeded)
-        //        return View("Login");
-
-        //    var Email = authenticateResult.Principal.FindFirstValue(ClaimTypes.Email);
-        //    var DispayName = authenticateResult.Principal.FindFirstValue(ClaimTypes.GivenName);
-
-        //    UserDTO user = new UserDTO()
+        //    var properties = new AuthenticationProperties
         //    {
-        //        Email = Email,
-        //        DisplayName = DispayName,
-        //        Token = ""
+        //        RedirectUri = "https://localhost:7147/api/Account/LoginGoogle",
+        //        Items =
+        //        {
+        //            { "scheme", CookieAuthenticationDefaults.AuthenticationScheme }
+        //        }
         //    };
 
-        //    UserDTO model = await authService.LoginGoogleAsync(user);
+        //    return Challenge(properties, CookieAuthenticationDefaults.AuthenticationScheme); 
 
-        //    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, authenticateResult.Principal);
-        //    HttpContext.Session.SetString(SD.SessionToken, model.Token);
-
-        //    return RedirectToAction("Index", "Book");
-        //    // Process the authentication result and sign in the user if successful
-
-        //    // Redirect to a different page or perform additional actions
-
-        //    return RedirectToAction("Index", "Home");
+        //    //await HttpContext.ChallengeAsync(
+        //    //   GoogleDefaults.AuthenticationScheme,
+        //    //   new AuthenticationProperties { RedirectUri = "https://localhost:7147/api/Account/LoginGoogle" });
         //}
-        private ClaimsPrincipal ClaimsIdentity(UserDTO model)
+        private ClaimsPrincipal ClaimsIdentity(string model)
         {
             var handler = new JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(model.Token);
+            var jwt = handler.ReadJwtToken(model);
 
             var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-            ViewBag.Name = jwt.Claims.FirstOrDefault(u => u.Type == "given_name").Value;
-            identity.AddClaim(new Claim(ClaimTypes.Email, jwt.Claims.FirstOrDefault(u => u.Type == "email").Value));
-            identity.AddClaim(new Claim(ClaimTypes.GivenName, jwt.Claims.FirstOrDefault(u => u.Type == "given_name").Value));
+            ViewBag.Name = jwt.Claims.FirstOrDefault(u => u.Type == "given_name")!.Value;
+            identity.AddClaim(new Claim(ClaimTypes.Email, jwt.Claims.FirstOrDefault(u => u.Type == "email")!.Value));
+            identity.AddClaim(new Claim(ClaimTypes.GivenName, jwt.Claims.FirstOrDefault(u => u.Type == "given_name")!.Value));
 
             return new ClaimsPrincipal(identity);
         }
